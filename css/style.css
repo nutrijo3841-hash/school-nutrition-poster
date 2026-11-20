@@ -1,0 +1,170 @@
+/* Pretendard & 학교 교육용 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Do+Hyeon&display=swap');
+
+:root {
+  --primary-color: #10b981;
+  --primary-light: #ecfdf5;
+  --primary-dark: #047857;
+  --accent-color: #f59e0b;
+  --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  --font-title: 'Pretendard', 'Do Hyeon', sans-serif;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: #f8fafc;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 스크롤바 커스텀 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 포스터 컨테이너 섀도우 & 테두리 */
+.poster-shadow {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+/* 인쇄 미리보기용 비율 규격 */
+.aspect-a4 {
+  width: 794px;
+  min-height: 1123px;
+  max-width: 100%;
+}
+
+.aspect-screen {
+  width: 1050px;
+  min-height: 590px;
+  max-width: 100%;
+}
+
+.aspect-square {
+  width: 800px;
+  min-height: 800px;
+  max-width: 100%;
+}
+
+/* 텍스트 직접 편집 가능한 영역 스타일 */
+[contenteditable="true"]:hover {
+  outline: 2px dashed #93c5fd;
+  outline-offset: 2px;
+  border-radius: 4px;
+  cursor: text;
+  background-color: rgba(239, 246, 255, 0.5);
+}
+
+[contenteditable="true"]:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+
+/* 제철 캘린더 미니 태그 */
+.month-pill {
+  transition: all 0.2s ease;
+}
+.month-pill.active {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  font-weight: 700;
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 테마 컬러별 클래스 */
+.theme-green {
+  --primary-color: #10b981;
+  --primary-light: #ecfdf5;
+  --primary-dark: #047857;
+  --primary-badge: #d1fae5;
+  --primary-border: #a7f3d0;
+}
+
+.theme-orange {
+  --primary-color: #ea580c;
+  --primary-light: #fff7ed;
+  --primary-dark: #9a3412;
+  --primary-badge: #ffedd5;
+  --primary-border: #fed7aa;
+}
+
+.theme-purple {
+  --primary-color: #7c3aed;
+  --primary-light: #f5f3ff;
+  --primary-dark: #5b21b6;
+  --primary-badge: #ede9fe;
+  --primary-border: #ddd6fe;
+}
+
+.theme-blue {
+  --primary-color: #0284c7;
+  --primary-light: #f0f9ff;
+  --primary-dark: #0369a1;
+  --primary-badge: #e0f2fe;
+  --primary-border: #bae6fd;
+}
+
+.theme-pink {
+  --primary-color: #e11d48;
+  --primary-light: #fff1f2;
+  --primary-dark: #9f1239;
+  --primary-badge: #ffe4e6;
+  --primary-border: #fecdd3;
+}
+
+/* 동적 테마 적용 클래스 */
+.bg-theme-primary { background-color: var(--primary-color); }
+.bg-theme-light { background-color: var(--primary-light); }
+.text-theme-primary { color: var(--primary-color); }
+.text-theme-dark { color: var(--primary-dark); }
+.border-theme-primary { border-color: var(--primary-color); }
+.border-theme-border { border-color: var(--primary-border); }
+
+/* 인쇄용 CSS (A4 1페이지에 딱 맞게 출력) */
+@media print {
+  body {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .no-print, header, aside, .action-toolbar {
+    display: none !important;
+  }
+
+  .print-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  #posterCanvas {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+}

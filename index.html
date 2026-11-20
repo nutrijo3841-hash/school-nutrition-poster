@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>영양쏙쏙 - 전국 영양교사용 식재료 교육 포스터 웹앱</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- html2canvas CDN (고화질 포스터 이미지 저장용) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-800">
+
+  <div id="appRoot" class="theme-green min-h-screen flex flex-col">
+    
+    <!-- 1. 최상단 네비게이션 헤더 -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print shadow-xs">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        
+        <!-- 로고 및 브랜드 타이틀 -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md text-xl">
+            🍎
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900">영양쏙쏙</span>
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">영양교사 전용</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium hidden sm:block">식재료 검색부터 급식 포스터 완성까지 원클릭</p>
+          </div>
+        </div>
+
+        <!-- 학교급 전환 스위치 (유초등 vs 중고등) -->
+        <div class="bg-slate-100 p-1 rounded-2xl flex items-center gap-1 border border-slate-200 shrink-0">
+          <button data-mode="elementary" class="mode-toggle-btn px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 bg-white shadow-xs text-slate-900 font-bold">
+            <span>🐥</span> <span class="hidden md:inline">유치원·초등</span>
+          </button>
+          <button data-mode="secondary" class="mode-toggle-btn px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 text-slate-500 hover:text-slate-900">
+            <span>🎓</span> <span class="hidden md:inline">중·고등학교</span>
+          </button>
+        </div>
+
+        <!-- 실물 사진 vs 일러스트 토글 스위치 -->
+        <div class="bg-slate-100 p-1 rounded-2xl flex items-center gap-1 border border-slate-200 shrink-0">
+          <button data-imagemode="photo" class="imagemode-btn px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 bg-white shadow-xs text-slate-900 font-bold" title="생생한 식재료 실제 사진으로 표시">
+            <span>📸</span> <span class="hidden md:inline">실물 사진</span>
+          </button>
+          <button data-imagemode="emoji" class="imagemode-btn px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 text-slate-500 hover:text-slate-900" title="귀여운 캐릭터 및 이모지로 표시">
+            <span>🎨</span> <span class="hidden md:inline">일러스트</span>
+          </button>
+        </div>
+
+        <!-- 상단 우측 액션 버튼들 -->
+        <div class="flex items-center gap-2 shrink-0">
+          
+          <!-- 클립보드 복사 -->
+          <button id="copyBtn" class="hidden sm:flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="포스터 이미지 클립보드 복사">
+            <span>📋</span> <span>복사</span>
+          </button>
+
+          <!-- A4 인쇄 -->
+          <button id="printBtn" class="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition" title="A4 맞춤 급식실 인쇄">
+            <span>🖨️</span> <span class="hidden sm:inline">급식실 인쇄</span>
+          </button>
+
+          <!-- 고화질 PNG 다운로드 -->
+          <button id="downloadBtn" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition" title="2x 고해상도 인쇄용 이미지 저장">
+            <span>🖼️</span> <span>포스터 저장</span>
+          </button>
+
+          <!-- AI 키 설정 -->
+          <button id="openSettingsBtn" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" title="Gemini AI 설정">
+            <span>⚙️</span>
+          </button>
+
+        </div>
+
+      </div>
+    </header>
+
+    <!-- 2. 세컨더리 툴바 (폼팩터 규격 & 테마 선택기) -->
+    <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-16 z-30 no-print py-2">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- 폼팩터 버튼 그룹 -->
+        <div class="flex items-center gap-1.5 overflow-x-auto">
+          <span class="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
+            <span>📐</span> 규격:
+          </span>
+          <button data-formfactor="a4" class="formfactor-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-900 text-white shadow-sm">
+            <span>📄</span> A4 포스터 (게시판/인쇄용)
+          </button>
+          <button data-formfactor="screen" class="formfactor-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-white text-slate-700 border border-slate-200 hover:border-slate-300">
+            <span>📺</span> 16:9 모니터 (급식실 TV 송출)
+          </button>
+          <button data-formfactor="square" class="formfactor-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-white text-slate-700 border border-slate-200 hover:border-slate-300">
+            <span>📱</span> 1:1 카드뉴스 (e알리미/가정통신)
+          </button>
+        </div>
+
+        <!-- 테마 컬러 팔레트 & 랜덤 뽑기 -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-slate-400 hidden sm:inline">테마:</span>
+            <button data-theme="theme-green" class="theme-color-btn w-6 h-6 rounded-full bg-emerald-500 ring-4 ring-slate-400 hover:scale-110 transition" title="싱그러운 그린"></button>
+            <button data-theme="theme-orange" class="theme-color-btn w-6 h-6 rounded-full bg-orange-500 hover:scale-110 transition" title="비타민 오렌지"></button>
+            <button data-theme="theme-purple" class="theme-color-btn w-6 h-6 rounded-full bg-purple-600 hover:scale-110 transition" title="슈퍼푸드 퍼플"></button>
+            <button data-theme="theme-blue" class="theme-color-btn w-6 h-6 rounded-full bg-sky-600 hover:scale-110 transition" title="스마트 블루"></button>
+            <button data-theme="theme-pink" class="theme-color-btn w-6 h-6 rounded-full bg-rose-500 hover:scale-110 transition" title="러블리 핑크"></button>
+          </div>
+
+          <div class="h-4 w-[1px] bg-slate-200"></div>
+
+          <!-- 오늘의 랜덤 식재료 뽑기 -->
+          <button id="randomBtn" class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-2xs">
+            <span>🎲</span> <span>식재료 뽑기</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. 메인 작업 레이아웃 (사이드바 + 캔버스) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 print-container">
+      
+      <!-- 좌측 탐색 사이드바 (식재료 검색 및 학교명 설정) -->
+      <aside class="lg:col-span-4 flex flex-col gap-4 no-print">
+        
+        <!-- 학교명 & 소속 설정 카드 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <label class="block text-xs font-bold text-slate-600 mb-1 flex items-center justify-between">
+            <span class="flex items-center gap-1"><span>🏫</span> 학교 / 기관명 설정</span>
+            <span class="text-[10px] text-slate-400 font-normal">포스터에 자동 반영</span>
+          </label>
+          <input 
+            type="text" 
+            id="schoolNameInput" 
+            placeholder="예: 서울행복초등학교 급식실" 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+          >
+        </div>
+
+        <!-- 식재료 검색 및 필터 카드 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-3 flex-1">
+          
+          <!-- 검색창 -->
+          <div class="relative">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="식재료 검색 (예: 시금치, 연근, 딸기...)" 
+              class="w-full pl-9 pr-24 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+            >
+            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+            <button 
+              id="aiSearchBtn" 
+              class="absolute right-1.5 top-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-2xs flex items-center gap-1"
+              title="데이터에 없는 새로운 식재료도 AI가 즉시 분석해 포스터를 만듭니다"
+            >
+              <span>✨</span> <span>AI 분석</span>
+            </button>
+          </div>
+
+          <!-- 제철 뱃지 바 -->
+          <div id="seasonalPills" class="w-full"></div>
+
+          <!-- 카테고리 필터 버튼들 -->
+          <div id="categoryPills" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+
+          <div class="h-[1px] bg-slate-100 my-0.5"></div>
+
+          <!-- 식재료 목록 리스트 (스크롤) -->
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 px-1">
+            <span>식재료 목록</span>
+            <span class="text-slate-400 font-normal">원하는 식재료를 클릭하세요</span>
+          </div>
+
+          <div id="ingredientList" class="flex flex-col gap-2 max-h-[460px] overflow-y-auto pr-1">
+            <!-- 자바스크립트로 렌더링 -->
+          </div>
+
+        </div>
+
+      </aside>
+
+      <!-- 우측 메인 포스터 미리보기 영역 -->
+      <section id="posterWrapper" class="lg:col-span-8 flex flex-col items-center">
+        
+        <!-- 실시간 편집 & 자동 저장 안내 배너 -->
+        <div class="w-full mb-3 no-print bg-emerald-50 border border-emerald-200/80 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-emerald-900 shadow-2xs">
+          <div class="flex items-center gap-2">
+            <span class="text-base">💾</span>
+            <p>
+              <strong class="font-bold">자동 저장 활성화:</strong> 사진 교체(Ctrl+V)나 글자 수정을 하면 
+              <span class="underline decoration-emerald-500 font-semibold">브라우저에 즉시 안전하게 보관</span>됩니다!
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="saveStatusBadge" class="text-[11px] bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+              <span>💾</span> <span>자동저장 활성</span>
+            </span>
+            <button id="resetEditsBtn" class="hidden text-[11px] bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 font-bold px-2.5 py-1 rounded-full transition flex items-center gap-1 shadow-2xs" title="수정한 사진과 글자를 원래 기본값으로 되돌립니다">
+              <span>🔄</span> <span>원본 복원</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 실제 포스터 캔버스 (A4 / 16:9 / 1:1) -->
+        <div id="posterCanvas" class="w-full flex justify-center items-start overflow-x-auto p-1 sm:p-2">
+          <!-- posterRenderer.js에 의해 동적으로 생성 -->
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- 4. Gemini API 키 설정 모달 -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden no-print">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🤖</span>
+            <h3 class="font-bold text-slate-900 text-base">Gemini AI 설정</h3>
+          </div>
+          <button id="closeSettingsBtn" class="text-slate-400 hover:text-slate-600 text-lg p-1">✕</button>
+        </div>
+
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">
+          Google Gemini Flash API 키를 입력하시면, 데이터베이스에 없는 전 세계 어떤 식재료든 AI가 실시간으로 영양 성분과 학교급별 맞춤형 포스터를 생성해 드립니다.<br>
+          <span class="text-emerald-600 font-semibold">* API 키가 없어도 기본 내장 50선 및 스마트 생성기로 자유롭게 사용하실 수 있습니다.</span>
+        </p>
+
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Google Gemini API Key</label>
+          <input 
+            type="password" 
+            id="apiKeyInput" 
+            placeholder="AIzaSy..." 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+          >
+          <p class="text-[10px] text-slate-400 mt-1">API 키는 오직 브라우저 내부(localStorage)에만 안전하게 보관됩니다.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2">
+          <button id="saveApiKeyBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">
+            설정 저장하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 사진 변경 모달 -->
+    <div id="imageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden no-print">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">📷</span>
+            <h3 class="font-bold text-slate-900 text-base">식재료 사진 변경</h3>
+          </div>
+          <button id="closeImageModalBtn" class="text-slate-400 hover:text-slate-600 text-lg p-1">✕</button>
+        </div>
+
+        <p class="text-xs text-slate-500 leading-relaxed mb-3">
+          선생님께서 마음에 드는 사진을 간편하게 적용할 수 있습니다.
+        </p>
+
+        <!-- 원클릭 인터넷 이미지 검색 바로가기 -->
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl mb-4">
+          <span class="text-xs font-bold text-amber-900 block mb-1.5 flex items-center gap-1">
+            <span>🔍</span> 인터넷에서 고화질 사진 바로 찾기:
+          </span>
+          <div class="flex items-center gap-2">
+            <button id="searchNaverImgBtn" class="flex-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-2xs">
+              <span>🟢</span> 네이버 이미지 검색
+            </button>
+            <button id="searchGoogleImgBtn" class="flex-1 bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-2xs">
+              <span>🔵</span> 구글 이미지 검색
+            </button>
+          </div>
+          <p class="text-[10px] text-amber-700 font-medium mt-2 leading-tight">
+            💡 <strong>초간편 팁:</strong> 인터넷에서 마음에 드는 사진 우클릭 → <strong>[이미지 복사]</strong> 후, 이 화면에서 키보드 <strong>[Ctrl + V]</strong>만 누르면 바로 쏙 들어옵니다!
+          </p>
+        </div>
+
+        <!-- 파일 직접 업로드 -->
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">내 컴퓨터에서 사진 파일 올리기</label>
+          <input type="file" id="localImageInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+        </div>
+
+        <div class="flex items-center gap-2 my-3">
+          <div class="h-[1px] bg-slate-200 flex-1"></div>
+          <span class="text-[10px] text-slate-400 font-bold uppercase">또는</span>
+          <div class="h-[1px] bg-slate-200 flex-1"></div>
+        </div>
+
+        <!-- 이미지 URL 입력 -->
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">인터넷 이미지 URL 주소</label>
+          <input 
+            type="text" 
+            id="customImageUrlInput" 
+            placeholder="https://..." 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+          >
+        </div>
+
+        <div class="flex items-center justify-end gap-2">
+          <button id="applyImageBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">
+            사진 적용하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단 심플 푸터 (화면용) -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 no-print mt-auto">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>전국 유치원, 초등학교, 중학교, 고등학교 영양교사를 응원합니다. 🥦🍎</p>
+        <p class="text-[11px] text-slate-400">데이터 기준: 식품의약품안전처 국가표준식품성분표 & 학교급식 알레르기 19종 지침</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- 메인 모듈 실행 (file:/// 및 http:// 모두 완벽 호환) -->
+  <script src="./js/app.bundle.js"></script>
+</body>
+</html>
