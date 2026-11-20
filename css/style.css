@@ -39,6 +39,10 @@ body {
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
+.border-3 {
+  border-width: 3px;
+}
+
 /* 인쇄 미리보기용 비율 규격 */
 .aspect-a4 {
   width: 794px;
