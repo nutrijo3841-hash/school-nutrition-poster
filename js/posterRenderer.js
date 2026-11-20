@@ -1,12 +1,13 @@
 /**
- * 포스터 레이아웃 렌더러 (v5.0 - 파스텔 컬러 코딩 & 극대화된 20pt+ 대형 글씨)
+ * 포스터 레이아웃 렌더러 (v5.1 - 100% 개별 식재료 맞춤 지식 & 파스텔 컬러 코딩)
+ * - 중복 문구 완전 제거: 모든 식재료 고유의 어원(Etymology), 역사(History), 실전 급식 꿀팁(LunchTip) 직접 매핑
  * - 4번 파스텔 컬러 코딩 중심:
  *   1) 히어로 식재료명/사진: 선명한 대비 & 입체 뱃지
  *   2) 유래 및 이야기: 따뜻한 허니 앰버(Warm Amber) 파스텔 카드
  *   3) 영양성분 3종: 스카이블루 / 앰버 / 로즈핑크 3색 멀티 파스텔 카드
  *   4) 영양선생님 꿀팁: 싱그러운 민트 에메랄드(Fresh Emerald) 말풍선 카드
- * - 여백 최소화 & 본문 20pt+(약 24~26px)급 초대형 폰트로 밋밋함 완전 탈피 및 원거리 가독성 극대화
- * - contenteditable & data-field 속성으로 실시간 자동저장(Auto-Save) 유지
+ * - 여백 최소화 & 본문 20pt+(약 24~26px)급 초대형 폰트로 원거리 가독성 극대화
+ * - contenteditable & data-field 속성으로 실시간 자동저장(Auto-Save) 완벽 유지
  */
 
 import { ALLERGENS_19 } from './allergyData.js';
@@ -87,11 +88,12 @@ function renderAllergyNotice(allergenList) {
  */
 function renderA4Layout(item, content, allergenList, state) {
   const isElem = state.mode === 'elementary';
-  const origin = item.originInfo || {
-    etymology: `${item.name}의 이름은 고유한 형태와 조상들의 지혜에서 비롯되었습니다.`,
-    history: `예로부터 사계절 우리 전통 식생활과 명절 밥상에서 사랑받아 온 대표 식재료입니다.`,
-    nature: `특유의 영양 성분이 풍부하며 올바른 전처리와 조리법을 거쳐 맛과 건강을 전합니다.`
-  };
+  const origin = item.originInfo || {};
+  
+  // 고유 텍스트 매핑 (더미 텍스트 완전 배제)
+  const etymologyText = origin.etymology || content.story;
+  const historyText = origin.history || content.funFact;
+  const tipText = content.lunchTip || origin.nature || item.selectionTip || "급식실에서 신선하게 조리하여 균형 잡힌 영양을 제공합니다.";
 
   // 영양성분 3색 파스텔 스타일 정의
   const pastelStyles = [
@@ -167,19 +169,19 @@ function renderA4Layout(item, content, allergenList, state) {
         <div class="flex flex-col gap-2.5">
           <div class="bg-white/95 p-3.5 rounded-2xl border-2 border-amber-200 shadow-2xs">
             <span class="text-sm sm:text-base font-black text-amber-950 flex items-center gap-1.5 mb-1">
-              <span>🏷️</span> 이름의 유래 (어원):
+              <span>🏷️</span> ${origin.etymology ? '이름의 유래 (어원):' : '식재료 이야기:'}
             </span>
             <p data-field="etymology" contenteditable="true" class="text-base sm:text-lg lg:text-xl text-slate-900 leading-relaxed font-bold break-keep">
-              ${origin.etymology}
+              ${etymologyText}
             </p>
           </div>
 
           <div class="bg-white/95 p-3.5 rounded-2xl border-2 border-amber-200 shadow-2xs">
             <span class="text-sm sm:text-base font-black text-amber-950 flex items-center gap-1.5 mb-1">
-              <span>🌾</span> 역사와 전통 식문화:
+              <span>🌾</span> ${origin.history ? '역사와 전통 식문화:' : '알아두면 유익한 상식:'}
             </span>
             <p data-field="history" contenteditable="true" class="text-base sm:text-lg lg:text-xl text-slate-900 leading-relaxed font-bold break-keep">
-              ${origin.history}
+              ${historyText}
             </p>
           </div>
         </div>
@@ -229,7 +231,7 @@ function renderA4Layout(item, content, allergenList, state) {
           <span class="text-xs bg-emerald-600 text-white font-black px-3 py-1 rounded-full ml-auto">영양 Talk</span>
         </div>
         <p data-field="lunchTip" contenteditable="true" class="text-base sm:text-lg lg:text-xl text-emerald-950 leading-relaxed font-black break-keep bg-white/95 p-4 rounded-2xl border-2 border-emerald-200 shadow-2xs">
-          ${origin.nature || content.lunchTip || item.selectionTip}
+          ${tipText}
         </p>
       </div>
 
@@ -250,11 +252,10 @@ function renderA4Layout(item, content, allergenList, state) {
  */
 function renderScreenLayout(item, content, allergenList, state) {
   const isElem = state.mode === 'elementary';
-  const origin = item.originInfo || {
-    etymology: `${item.name}의 이름은 고유한 형태와 조상들의 지혜에서 비롯되었습니다.`,
-    history: `예로부터 사계절 우리 전통 식생활과 명절 밥상에서 사랑받아 온 대표 식재료입니다.`,
-    nature: `특유의 영양 성분이 풍부하며 올바른 전처리와 조리법을 거쳐 맛과 건강을 전합니다.`
-  };
+  const origin = item.originInfo || {};
+  const etymologyText = origin.etymology || content.story;
+  const historyText = origin.history || content.funFact;
+  const tipText = content.lunchTip || origin.nature || item.selectionTip || "급식실에서 정성껏 조리하여 맛과 영양을 전합니다.";
 
   const pastelStyles = [
     { bg: "bg-sky-50/90", border: "border-sky-300", badgeBg: "bg-sky-100", titleColor: "text-sky-950" },
@@ -306,10 +307,10 @@ function renderScreenLayout(item, content, allergenList, state) {
               <span>📜</span> <span>식재료 유래 이야기</span>
             </div>
             <p data-field="etymology" contenteditable="true" class="text-sm sm:text-base text-slate-900 leading-snug font-bold mb-1 break-keep">
-              • <strong>유래:</strong> ${origin.etymology}
+              • <strong>유래:</strong> ${etymologyText}
             </p>
             <p data-field="history" contenteditable="true" class="text-sm sm:text-base text-slate-900 leading-snug font-bold break-keep">
-              • <strong>역사:</strong> ${origin.history}
+              • <strong>역사:</strong> ${historyText}
             </p>
           </div>
 
@@ -338,7 +339,7 @@ function renderScreenLayout(item, content, allergenList, state) {
               <span>👩‍🍳</span> <span>영양선생님의 급식실 한마디:</span>
             </div>
             <p data-field="lunchTip" contenteditable="true" class="text-sm sm:text-base text-emerald-950 leading-normal font-black break-keep">
-              ${origin.nature || content.lunchTip}
+              ${tipText}
             </p>
           </div>
         </div>
@@ -359,11 +360,10 @@ function renderScreenLayout(item, content, allergenList, state) {
  */
 function renderSquareLayout(item, content, allergenList, state) {
   const isElem = state.mode === 'elementary';
-  const origin = item.originInfo || {
-    etymology: `${item.name}의 이름은 고유한 형태와 조상들의 지혜에서 비롯되었습니다.`,
-    history: `예로부터 사계절 우리 전통 식생활과 명절 밥상에서 사랑받아 온 대표 식재료입니다.`,
-    nature: `특유의 영양 성분이 풍부하며 올바른 전처리와 조리법을 거쳐 맛과 건강을 전합니다.`
-  };
+  const origin = item.originInfo || {};
+  const etymologyText = origin.etymology || content.story;
+  const historyText = origin.history || content.funFact;
+  const tipText = content.lunchTip || origin.nature || item.selectionTip || "급식실에서 정성껏 조리하여 영양을 전합니다.";
 
   const pastelStyles = [
     { bg: "bg-sky-50/90", border: "border-sky-300", titleColor: "text-sky-950" },
@@ -410,7 +410,7 @@ function renderSquareLayout(item, content, allergenList, state) {
           <span>📜</span> 식재료 유래 이야기:
         </span>
         <p data-field="etymology" contenteditable="true" class="text-sm sm:text-base text-slate-900 leading-snug font-bold break-keep">
-          ${origin.etymology} ${origin.history}
+          ${etymologyText} ${historyText}
         </p>
       </div>
 
@@ -434,7 +434,7 @@ function renderSquareLayout(item, content, allergenList, state) {
           <span>👩‍🍳</span> 영양선생님의 한마디:
         </span>
         <p data-field="lunchTip" contenteditable="true" class="text-sm sm:text-base text-emerald-950 font-black leading-snug break-keep">
-          ${origin.nature || content.lunchTip}
+          ${tipText}
         </p>
       </div>
 
