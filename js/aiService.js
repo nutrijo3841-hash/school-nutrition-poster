@@ -349,7 +349,7 @@ function generateSmartFallback(name, wiki) {
     englishName: name,
     category: category,
     emoji: emoji,
-    imageUrl: wiki?.imageUrl || "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80",
+    imageUrl: wiki?.imageUrl || "",
     themeColor: themeColor,
     peakMonths: [9, 10, 11],
     energyPer100g: "50 kcal",

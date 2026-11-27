@@ -1,13 +1,9 @@
 /**
- * 포스터 레이아웃 렌더러 (v5.1 - 100% 개별 식재료 맞춤 지식 & 파스텔 컬러 코딩)
- * - 중복 문구 완전 제거: 모든 식재료 고유의 어원(Etymology), 역사(History), 실전 급식 꿀팁(LunchTip) 직접 매핑
- * - 4번 파스텔 컬러 코딩 중심:
- *   1) 히어로 식재료명/사진: 선명한 대비 & 입체 뱃지
- *   2) 유래 및 이야기: 따뜻한 허니 앰버(Warm Amber) 파스텔 카드
- *   3) 영양성분 3종: 스카이블루 / 앰버 / 로즈핑크 3색 멀티 파스텔 카드
- *   4) 영양선생님 꿀팁: 싱그러운 민트 에메랄드(Fresh Emerald) 말풍선 카드
- * - 여백 최소화 & 본문 20pt+(약 24~26px)급 초대형 폰트로 원거리 가독성 극대화
- * - contenteditable & data-field 속성으로 실시간 자동저장(Auto-Save) 완벽 유지
+ * 포스터 레이아웃 렌더러 (v5.3 - 샐러드 사진 완전 퇴출 & 100% 식재료 실물 매칭)
+ * - 샐러드 기본값/대체이미지 완전 제거: 실물 식재료 전용 뷰 및 이모지 안전 대체
+ * - 상단 [실물 사진] ↔ [일러스트] 모드 완벽 연동
+ * - 4번 파스텔 컬러 코딩 (허니 앰버, 3색 멀티 파스텔, 민트 에메랄드)
+ * - 여백 최소화 & 본문 20pt+ 초대형 폰트
  */
 
 import { ALLERGENS_19 } from './allergyData.js';
@@ -36,15 +32,41 @@ export function renderPoster(container, state) {
 }
 
 /**
- * 실물 사진 렌더링 헬퍼 (대형 고화질 뷰 & 변경 안내)
+ * 식재료 비주얼 렌더링 헬퍼 (실물 사진 vs 일러스트 모드 완벽 분리 & 샐러드 대체 이미지 완전 제거)
  */
-function renderIngredientPhoto(item, sizeClasses = "w-52 h-52 sm:w-64 sm:h-64") {
-  const imgUrl = item.imageUrl || "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80";
+function renderIngredientPhoto(item, state, sizeClasses = "w-52 h-52 sm:w-64 sm:h-64") {
+  const isEmojiMode = state && state.imageMode === 'emoji';
+  const imgUrl = item.imageUrl || `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(item.name)}.jpg`;
+
+  if (isEmojiMode) {
+    return `
+      <div class="relative group cursor-pointer shrink-0" id="heroVisualBox" title="클릭하여 사진 변경 (또는 Ctrl+V로 이미지 붙여넣기)">
+        <div class="${sizeClasses} rounded-3xl bg-gradient-to-br from-amber-50 to-orange-100/60 border-4 border-theme-border flex flex-col items-center justify-center shadow-lg overflow-hidden relative">
+          <span class="text-8xl sm:text-9xl select-none transition duration-300 group-hover:scale-110 drop-shadow-sm">${item.emoji}</span>
+          <span class="text-xs sm:text-sm font-black text-theme-dark mt-2 bg-white/95 px-3 py-0.5 rounded-full border border-theme-border shadow-2xs">${item.name}</span>
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-sm font-black gap-1 no-print p-2 text-center">
+            <span>🎨 일러스트 모드</span>
+            <span class="text-[11px] font-normal text-slate-200">클릭 시 사진으로 변경</span>
+          </div>
+        </div>
+        <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full border-2 border-slate-300 text-xs sm:text-sm font-black text-slate-800 shadow-md flex items-center gap-1.5 whitespace-nowrap">
+          <span>🎨 일러스트</span>
+          <span class="text-slate-300">•</span>
+          <span class="text-theme-dark font-extrabold">${item.category}</span>
+        </div>
+      </div>
+    `;
+  }
 
   return `
     <div class="relative group cursor-pointer shrink-0" id="heroVisualBox" title="클릭하여 사진 변경 (또는 Ctrl+V로 이미지 붙여넣기)">
       <div class="${sizeClasses} rounded-3xl bg-theme-light border-4 border-theme-border flex items-center justify-center shadow-lg overflow-hidden relative">
-        <img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80';" />
+        <img 
+          src="${imgUrl}" 
+          alt="${item.name}" 
+          class="w-full h-full object-cover transition duration-300 group-hover:scale-105" 
+          onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100 text-slate-800 p-4 text-center\\'><span class=\\'text-7xl sm:text-8xl select-none mb-1\\'>${item.emoji}</span><span class=\\'text-base font-black text-slate-900\\'>${item.name}</span><span class=\\'text-xs text-slate-500 font-bold mt-1\\'>📸 사진 클릭 / Ctrl+V 붙여넣기</span></div>';" 
+        />
         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-sm font-black gap-1 no-print p-2 text-center">
           <span>📷 사진 변경</span>
           <span class="text-[11px] font-normal text-slate-200">클릭 또는 [Ctrl+V] 붙여넣기</span>
@@ -126,8 +148,8 @@ function renderA4Layout(item, content, allergenList, state) {
            구역 1: [식재료명] & [식재료 사진] (히어로 섹션)
            ======================================================== -->
       <div class="relative z-10 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-3xl p-5 border-3 border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-6 my-1">
-        <!-- 2. 식재료 사진 -->
-        ${renderIngredientPhoto(item, "w-48 h-48 sm:w-56 sm:h-56")}
+        <!-- 2. 식재료 사진 (state 전달하여 일러스트/실물사진 전환 반영) -->
+        ${renderIngredientPhoto(item, state, "w-48 h-48 sm:w-56 sm:h-56")}
 
         <!-- 1. 식재료명 및 캐치프레이즈 -->
         <div class="flex-1 text-center sm:text-left flex flex-col justify-center gap-2">
@@ -285,7 +307,7 @@ function renderScreenLayout(item, content, allergenList, state) {
       <div class="grid grid-cols-12 gap-6 items-center flex-1 my-auto">
         <!-- 좌측: [1. 식재료명] & [2. 식재료 사진] (5칸) -->
         <div class="col-span-12 sm:col-span-5 flex flex-col items-center justify-center text-center bg-gradient-to-b from-slate-50 to-white p-6 rounded-3xl border-3 border-slate-200 shadow-sm h-full">
-          ${renderIngredientPhoto(item, "w-48 h-48 sm:w-56 sm:h-56")}
+          ${renderIngredientPhoto(item, state, "w-48 h-48 sm:w-56 sm:h-56")}
 
           <h1 data-field="name" contenteditable="true" class="text-4xl sm:text-5xl font-black text-slate-900 mt-4 mb-1 tracking-tight">
             ${item.name}
@@ -386,7 +408,7 @@ function renderSquareLayout(item, content, allergenList, state) {
 
       <!-- 1 & 2. 식재료명 및 사진 -->
       <div class="flex items-center gap-5 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-4 rounded-3xl border-3 border-slate-200 my-1 shadow-xs">
-        ${renderIngredientPhoto(item, "w-36 h-36 sm:w-44 sm:h-44")}
+        ${renderIngredientPhoto(item, state, "w-36 h-36 sm:w-44 sm:h-44")}
 
         <div class="flex-1">
           <div data-field="subtitle" contenteditable="true" class="text-xs sm:text-sm font-black text-theme-primary mb-0.5">
